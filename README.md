@@ -8,7 +8,7 @@ To generate dependency for given notebooks or Python script, please run the foll
 ```
 python lib_ver_producer.py filename
 ```
- 
+**Note: Before running this python script you'll need to unzip the API bank data!**
 Right now, we have collected a large amount of Python OSS projects and working on expand the volumn of the API blank, we will release it once we've done ! 
 
 ### API bank  👋
