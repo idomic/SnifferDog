@@ -11,6 +11,7 @@ import ast
 from core.API_name_formating import  get_API_calls 
 from core.module_stat import  API_extracting_single, API_extracting_single_file  
 
+
 # parse a single lib's all APIs
 def parse_lib_APIs(lines):
     name = ""
@@ -21,6 +22,7 @@ def parse_lib_APIs(lines):
         API_name, versions =  line.split(':')
         d[API_name] = versions.split(',')
     return name, d
+
 
 def get_module_names(source, std_modules, local_folders):
     try:
@@ -41,6 +43,7 @@ def get_module_names(source, std_modules, local_folders):
         print("Syntax Errror !!!", e)
         return None
 
+
 def get_modules_again(nb_path):
     with open(nb_path) as f:
         nb = nbformat.read(f, as_version=4)
@@ -54,6 +57,7 @@ def get_modules_again(nb_path):
         results = get_API_calls(source)
         results = [r.split(':')[0] for r in results]
         return results
+
 
 def module2package():
     root_dir = 'data'
@@ -71,6 +75,7 @@ def module2package():
         API_database[fn] = API_data_tmp
     return m2p, API_database
 
+
 def list_intersec(all_sets):
     #input: a list of lists
     #output : a list
@@ -81,11 +86,14 @@ def list_intersec(all_sets):
         return new_lst
     else:
         return None
+
+
 def version_resolve(version_result):
     new_result= {}
     for k, v in version_result.items():
         new_result[k] = list_intersec(v)
     return new_result
+
 
 def API_version_lookup(API_data, name):
     for k, v in API_data.items():
@@ -93,6 +101,8 @@ def API_version_lookup(API_data, name):
             return v
     # cannot find this API
     return []
+
+
 def version_intersection(result):
     new_res = {}
     for k, v in result.items():
@@ -106,6 +116,8 @@ def version_intersection(result):
            else:
                new_res[k] = new_v 
     return new_res
+
+
 def load_API_bank():
     data_dir = 'API-bank-data/'
     m2p = {}  # module to packages
@@ -123,6 +135,7 @@ def load_API_bank():
             API_DB[package_name] = API_data['API']
     return m2p, API_DB
 
+
 def lst_unfold(lst):
     new_lst = []
     for l in lst:
@@ -135,6 +148,7 @@ def lst_unfold(lst):
 def main():
     nb_path = sys.argv[1]
     req_entries = []
+    missing_reqs = set()
     used_API_info = API_extracting_single_file(nb_path)
     tmp_module = used_API_info['module']
     tmp_API = used_API_info['API']
@@ -158,7 +172,9 @@ def main():
                 m_name = API.split('.')[0]
                 if m_name not in m2p:
                     # this can be from local folders
+                    missing_reqs.add(m_name)
                     continue
+
                 tmp_package_name = m2p[m_name]
                 versions = API_version_lookup(API_DB[tmp_package_name], API)
                 if m_name in result:
@@ -181,11 +197,28 @@ def main():
                     entry = "{}".format(k)
                     req_entries.append(entry)
             req_content = "\n".join(req_entries)
-        else:
-            print("Might contain some packages that are not included in our API Bank database! It would be great if you can report this to us!")
+    else:
+        print(
+            "Might contain some packages that are not included in our API "
+            "Bank database! It would be great if you can report this to us!")
+
+    print(
+        "Might contain some packages that are not included in our API Bank "
+        "database! It would be great if you can report this to us!")
+
+    # print(f"Dependencies that wasn't found: {missing_reqs}, "
+    #       f"writing to missing_reqs.txt")
+    # f = open("missing_reqs.txt", "a")
+    # for req in missing_reqs:
+    #     f.write(f'{req}\n')
+
+    req_content += '\n'
+    for req in missing_reqs:
+        req_content += f'{req}\n'
+
     print(req_content)
- 
+
+
          
 if __name__ == '__main__':
     main()
-

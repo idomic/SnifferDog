@@ -13,6 +13,7 @@ from zipfile import ZipFile
 from pkg_resources import parse_version
 import networkx as nx
 
+
 class Tree:
     def __init__(self, name):
         self.name = name
@@ -23,6 +24,7 @@ class Tree:
         self.ast = None
     def __str__(self):
         return str(self.name)
+
 
 def parse_import(tree):
     module_item_dict = {}
@@ -44,6 +46,7 @@ def parse_import(tree):
     except(AttributeError):
         return None
  
+
 def gen_AST(filename):
     try:
         source = open(filename).read()
@@ -52,6 +55,8 @@ def gen_AST(filename):
     except (SyntaxError,UnicodeDecodeError,):  # to avoid non-python code
         pass
         return None
+
+
 def parse_pyx(filename):
     lines = open(filename).readlines()
     all_func_names = []
@@ -59,6 +64,7 @@ def parse_pyx(filename):
         names = re.findall('def ([\s\S]*?)\(', str(line))
         if len(names)>0:
             all_func_names.append(names[0])
+
 
 def extract_class(filename):
     try:
@@ -75,6 +81,7 @@ def extract_class(filename):
             parse_pyx(filename)
         return {}, None  # return empty 
 
+
 def extract_class_from_source(source):
     try:
         tree = ast.parse(source, mode='exec')
@@ -87,6 +94,7 @@ def extract_class_from_source(source):
         #    parse_pyx(filename)
         print(e)
         return {}, None# return empty 
+
 
 def build_dir_tree(node):
     if node.name in ['test', 'tests', 'testing']:
@@ -109,6 +117,7 @@ def build_dir_tree(node):
             node.cargo = res
             node.ast = tree
 
+
 def leaf2root(node):
     tmp_node = node
     path_to_root = []
@@ -125,14 +134,17 @@ def leaf2root(node):
         path_name = "{}.{}".format(path_name, node.name.split('.')[0])
         return path_name
 
+
 def find_child_by_name(node, name):
     for ch in node.children:
         if ch.name == name:
             return ch
     return None
+
+
 def find_node_by_name(nodes, name):
     for node in nodes:
-        if node.name == name or node.name.rstrip('.py')== name:
+        if node.name == name or node.name.rstrip('.py') == name:
             return node
     return None
 def go_to_that_node(root, cur_node, visit_path):
@@ -213,6 +225,7 @@ def tree_infer_levels(root_node):
 
     return API_name_lst
 
+
 def make_API_full_name(meta_data, API_prefix):
     API_lst = []
     for k, v in meta_data.items():
@@ -243,6 +256,8 @@ def make_API_full_name(meta_data, API_prefix):
                     API_lst.append(API_name)
 
     return API_lst
+
+
 def search_targets(root_dir, targets):
      entry_points = []
      for root, dirs, files in os.walk(root_dir):
@@ -257,6 +272,8 @@ def search_targets(root_dir, targets):
          if n_found == len(targets):
              return entry_points
      return None
+
+
 # filter wheel
 # notice we will add egginfo soon
 def process_wheel(path, l_name):
@@ -266,7 +283,8 @@ def process_wheel(path, l_name):
     whl_final = ''
     max_py_ver = ''
     for fn in all_file_names:
-        if fn.endswith('.whl') and (fn.find('linux')>=0 or fn.find('any')>=0):  # this is a wheel
+        if fn.endswith('.whl') and \
+                (fn.find('linux') >= 0 or fn.find('any') >= 0):  # this is a wheel
             whl_path = os.path.join(path, fn)
             try:
                 output = inspect_wheel(whl_path)
@@ -293,6 +311,7 @@ def process_wheel(path, l_name):
         entry_points = search_targets(source_dir, top_levels)
         return entry_points
     return None
+
 
 def process_single_module(module_path):
     API_name_lst = []
@@ -325,6 +344,8 @@ def main():
     API_data['version'] = versions
 
     for v in versions:
+        if '.DS_Store' in v:
+            continue
         v_dir = os.path.join(lib_dir, v)
         print(v_dir)
         entry_points  = process_wheel(v_dir, lib_name)
